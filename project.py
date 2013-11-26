@@ -1,4 +1,5 @@
-__author__ = 'Rob'
+__author__ = 'Rob Argue'
+__author__ = 'Tommy Pensyl'
 
 import numpy
 
