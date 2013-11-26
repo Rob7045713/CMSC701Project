@@ -91,8 +91,11 @@ def dynamic_better(pat, str, cutoff):
 			
 			# update min in row
 			min_in_row = min(min_in_row, val)
-				
-				
+			
+		# early return
+		if min_in_row > cutoff:
+			return min_in_row
+								
 		###
 		#print bot_row
 		#debug_marker = numpy.array([0] * (len(str) + 1))
@@ -153,6 +156,10 @@ def dynamic_opt(pat, str, cutoff):
 			if val < min_in_row:
 				min_in_row = val
 
+		# early return
+		if min_in_row > cutoff:
+			return min_in_row
+					
 		# swap rows
 		temp = top_row
 		top_row = bot_row
