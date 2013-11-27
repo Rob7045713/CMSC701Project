@@ -179,9 +179,7 @@ def dynamic_opt(pat, str, cutoff, top_row = None, bot_row = None):
 			return min_in_row
 					
 		# swap rows
-		temp = top_row
-		top_row = bot_row
-		bot_row = temp
+		top_row, bot_row = bot_row, top_row
 
 	return min_in_row
 
