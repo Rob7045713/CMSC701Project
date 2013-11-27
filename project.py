@@ -196,15 +196,24 @@ def test(ref, qry, cutoff, start, end):
 			print qry[i][0]
 	
 def run(reference, query, cutoff, out_file):
-	ref = parseFasta(reference)
-	qry = parseFasta(query)
+	ref = parseFASTA(reference)
+	qry = parseFASTA(query)
 	out = open(out_file, 'w')
 	
+	max_len = max([len(q[1]) for q in qry])
+	arr1 = numpy.array([0] * (max_len + 1))
+	arr2 = numpy.array([0] * (max_len + 1))
+	
 	for pat in ref:
-		out.write(pat[0])
+		line = pat[0]
+		
 		for str in qry:
-			table = dynamic_naive(pat[1], str[1])
-			if table[-1,-1] <= cutoff:
-				out.write(' ' + str[0])
-			
+			edit_dist = dynamic_opt(pat[1], str[1], cutoff, arr1, arr2)
+			if edit_dist <= cutoff:
+				line = line + ' ' + str[0]
+		
+		line = line + '\n'
+		out.write(line)	
+		
+	out.close
 			
