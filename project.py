@@ -111,9 +111,14 @@ def dynamic_better(pat, str, cutoff):
 
 	return min_in_row
 	
-def dynamic_opt(pat, str, cutoff):
-	top_row = numpy.array([0] * (len(str) + 1))
-	bot_row = numpy.array([0] * (len(str) + 1))
+def dynamic_opt(pat, str, cutoff, top_row = None, bot_row = None):
+	row_len = len(str) + 1
+	
+	if (top_row == None):
+		top_row = numpy.array([0] * row_len)
+	if (bot_row == None):
+		bot_row = numpy.array([0] * row_len)
+	
 	min_in_row = cutoff + 1
 	min_idx = 1
 	max_idx = cutoff + 1
@@ -150,12 +155,25 @@ def dynamic_opt(pat, str, cutoff):
 				
 			if col == max_idx and val <= cutoff:
 				max_idx = max_idx + 1
-				bot_row[max_idx] = cutoff + 1
+				if max_idx > row_len - 1:
+					max_idx = row_len - 1
+				else:
+					bot_row[max_idx] = cutoff + 1
 			
 			# update min in row
 			if val < min_in_row:
 				min_in_row = val
 
+		###
+		#print bot_row
+		#debug_marker = numpy.array([0] * (len(str) + 1))
+		#debug_marker[min_idx] = 1
+		#debug_marker[max_idx] = 2
+		#print debug_marker
+		#print max_idx
+		#print row_len
+		###
+				
 		# early return
 		if min_in_row > cutoff:
 			return min_in_row
@@ -167,9 +185,15 @@ def dynamic_opt(pat, str, cutoff):
 
 	return min_in_row
 
-def test(ref, qry, cutoff, its):
-	for i in range(its):
-		print dynamic_opt(qry[i][1], ref[0][1], cutoff)
+def test(ref, qry, cutoff, start, end):
+	max_len = max([len(q[1]) for q in qry])
+	arr1 = numpy.array([0] * (max_len + 1))
+	arr2 = numpy.array([0] * (max_len + 1))
+	ret = 0
+	for i in range(start, end):
+		ret = dynamic_opt(qry[i][1], ref[0][1], cutoff, arr1, arr2)
+		if (ret <= cutoff):
+			print qry[i][0]
 	
 def run(reference, query, cutoff, out_file):
 	ref = parseFasta(reference)
