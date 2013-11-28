@@ -28,11 +28,11 @@ def get_cumulative_freqs(string):
         freqs[i] = freq_arr
     return freqs
 
-def run(reference, query, cutoff, out_file):
+def run(reference, query, cutoff, out_file, search_range = 100):
     ref = parseFASTA(reference)
-    ref = ref[0:5]                                      # Hack here
-    qry = parseFASTA('query2.fna')
-    qry = qry[0:20000]                                  # and here
+    #ref = ref[0:5]                                      # Hack here
+    qry = parseFASTA(query)
+    #qry = qry[0:20000]                                  # and here
     out = open(out_file, 'w')
 
     time0 = time.time()
@@ -42,8 +42,7 @@ def run(reference, query, cutoff, out_file):
     arr2 = numpy.array([0] * (max_len + 1))
 
     #search_range = min([len(x[1]) for x in qry])
-    search_range = 100                                  # and here too
-    
+     
     q_freq = get_q_freqs(qry, search_range)
 
     for pat in ref:
@@ -67,9 +66,6 @@ def run(reference, query, cutoff, out_file):
     out.close
 
     print "Total Time: " + str(time.time()-time0)
-
-profile.run("run('reference.fna','query2.fna',5,'out1.txt')")
-
 
 
 # make sure to manually edit file so that it ends on a proper line.
