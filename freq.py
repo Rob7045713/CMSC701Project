@@ -56,7 +56,7 @@ def cull(pat_freq, str_freq, cutoff):
 
     return sum <= 2 * cutoff
 
-def run(reference, query, cutoff, out_file, search_range = 100, verbose = False):
+def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbose = False):
     if verbose:
         print 'Run info:'
         print '  Time : ' + time.asctime()
@@ -72,6 +72,10 @@ def run(reference, query, cutoff, out_file, search_range = 100, verbose = False)
 
     time_start = time.time()
 
+    if out_file == None:
+        out_file = time.strftime('%y_%m_%d_%H_%M_%S') + '_cutoff_' + str(cutoff) + '_range_' + str(search_range) + '.txt'
+
+    out = open(out_file, 'w')
 
 
     ### \/ Loading data \/ ###
@@ -115,11 +119,7 @@ def run(reference, query, cutoff, out_file, search_range = 100, verbose = False)
 
 
 
-    out = open(out_file, 'w')
-
-
-
-   ### \/ Query preprocessing \/ ###
+    ### \/ Query preprocessing \/ ###
 
     time_prep_start = time.time()
     if verbose:
