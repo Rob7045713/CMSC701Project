@@ -84,34 +84,35 @@ def run(reference, query, cutoff, out_file, search_range = 100, verbose = False)
 
 
 
-    num_queries = len(qry)
-
     out = open(out_file, 'w')
 
-    time_start = time.time()
-
-    max_len = max([len(q[1]) for q in qry])
-    arr1 = numpy.array([0] * (max_len + 1))
-    arr2 = numpy.array([0] * (max_len + 1))
-
-    #search_range = min([len(x[1]) for x in qry])       # TODO : this
-    
 
 
-   ### \/ Query frequencies \/ ###
+   ### \/ Query preprocessing \/ ###
 
-    time_freq_start = time.time()
+    time_prep_start = time.time()
+    if verbose:
+        print 'Preprocessing queries'
+        print '  - Num queries'
+
+    num_queries = len(qry)
 
     if verbose:
-        print 'Calculating query letter frequencies'
+        print '  - Max length'
+
+    max_len = max([len(q[1]) for q in qry])
+    #search_range = min([len(x[1]) for x in qry])       # TODO : this
+
+    if verbose:
+        print '  - Query frequencies'
 
     q_freq = get_q_freqs(qry, search_range)
 
     if verbose:
-        print '  Calc time : %.3f s' % (time.time() - time_freq_start)
+        print '  Time : %.3f s' % (time.time() - time_prep_start)
         print ''
 
-    ### /\ Query frequencies /\ ###
+    ### /\ Query preprocessing /\ ###
 
 
 
@@ -124,6 +125,9 @@ def run(reference, query, cutoff, out_file, search_range = 100, verbose = False)
         print ''
 
     count = 0
+    arr1 = numpy.array([0] * (max_len + 1))
+    arr2 = numpy.array([0] * (max_len + 1))
+
 
     for pat in ref:
     
@@ -163,7 +167,9 @@ def run(reference, query, cutoff, out_file, search_range = 100, verbose = False)
 
     ### /\ Matching /\ ###
 
-    out.close
+
+
+    out.close()
 
     if verbose:
         print 'Total run time : %.3f s' % (time.time() - time_start)
