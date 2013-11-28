@@ -7,7 +7,7 @@ import time
 import numpy
 
 #global? I just kinda guessed
-map1 = {'A':0,'C':1,'G':2,'T':3}
+alphabet = {'A':0,'C':1,'G':2,'T':3}
     
 def get_q_freqs(qry, search_range):
     q_freq = []
@@ -15,7 +15,7 @@ def get_q_freqs(qry, search_range):
         string = q[1]
         freq_arr = [0]*4
         for i in range(min(search_range,len(string))):
-            freq_arr[map1[string[i]]] += 1
+            freq_arr[alphabet[string[i]]] += 1
         q_freq.append(freq_arr)
     return q_freq
 
@@ -24,9 +24,37 @@ def get_cumulative_freqs(string):
     freqs = numpy.matrix([[0]*4]*len(string))
     freq_arr = [0]*4
     for i in range(0,len(string)):
-        freq_arr[map1[string[i]]] += 1
+        freq_arr[alphabet[string[i]]] += 1
         freqs[i] = freq_arr
     return freqs
+
+# gets letter counts for a string
+def get_freqs(string, length = None, freqs = None):
+    if length == None:
+        length = len(string)
+
+    if freqs == None:
+        freqs = numpy.array([0] * len(alphabet))
+
+    for i in range(length):
+        freqs[alphabet[string[i]]] += 1
+
+    return freqs
+
+# optimimzed culling function
+def cull(pat_freq, str_freq, cutoff):
+    sum = 0
+
+    for let in range(len(alphabet)):
+        pat_let = pat_freq[let]
+        str_let = str_freq[let]
+        
+        if pat_let > str_let:
+            sum += pat_let - str_let
+        else:
+            sum += str_let - pat_let
+
+    return sum <= 2 * cutoff
 
 def run(reference, query, cutoff, out_file, search_range = 100, verbose = False):
     if verbose:
@@ -62,8 +90,9 @@ def run(reference, query, cutoff, out_file, search_range = 100, verbose = False)
     else:
         ref = reference
     
-    ref = ref[0:5]                                      # Hack here
-
+    ################
+    ref = ref[0:5]#                                     # Hack here
+    ################
     
     if isinstance(query, str):
         if verbose:
@@ -74,8 +103,10 @@ def run(reference, query, cutoff, out_file, search_range = 100, verbose = False)
     else:
         qry = query
 
-    qry = qry[0:100000]                                 # and here
-   
+    #####################
+    qry = qry[0:100000]#                                # and here
+    #####################
+
     if verbose:
         print '  Load time : %.3f s' % (time.time() - time_loading_start)
         print ''
@@ -127,6 +158,7 @@ def run(reference, query, cutoff, out_file, search_range = 100, verbose = False)
     count = 0
     arr1 = numpy.array([0] * (max_len + 1))
     arr2 = numpy.array([0] * (max_len + 1))
+    pat_freq = numpy.array([0] * len(alphabet))
 
 
     for pat in ref:
@@ -135,20 +167,21 @@ def run(reference, query, cutoff, out_file, search_range = 100, verbose = False)
 
         line = pat[0]
 
-        pat_freq = get_cumulative_freqs(pat[1])
+        pat_freq = get_freqs(pat[1], search_range, pat_freq)
 
         num_culled = 0    
-        matched = 0
+        num_matched = 0
         for i in range(len(qry)):
             q = qry[i]
-            if sum([abs(pat_freq[search_range-1,j]-q_freq[i][j]) for j in [0,1,2,3]]) <= 2*cutoff:
+            if cull(pat_freq, q_freq[i], cutoff):
                 edit_dist = dynamic_opt(pat[1], q[1], cutoff, arr1, arr2)
                 if edit_dist <= cutoff:
-                    matched += 1
-                    line = line + ' ' + q[0]
-                    line = line + '\n'
+                    num_matched += 1
+                    line = line + ' ' + q[0]    
             else:
                 num_culled+=1
+            
+        line = line + '\n'
         out.write(line)
 
         if verbose:
@@ -158,7 +191,7 @@ def run(reference, query, cutoff, out_file, search_range = 100, verbose = False)
             print 'Reference ' + str(count) + ' (' + pat[0] + '):' 
             print '  Time : %.3f s' % (time.time() - time_single_match_start)
             print '  Queries culled : ' + str(num_culled) + ' / ' + str(num_queries) + ' (%.2f%%)' % percent_culled
-            print '  Queries matched : ' + str(matched)
+            print '  Queries matched : ' + str(num_matched)
     
     if verbose:
         print ''
