@@ -4,6 +4,8 @@ __author__ = 'Tommy Pensyl'
 import profile
 import time
 import numpy
+import cProfile
+import pickle
 
 alphabet = {'A':0,'C':1,'G':2,'T':3}
 
@@ -144,12 +146,16 @@ def cull(pat_freq, str_freq, cutoff):
 
     return sum > 2 * cutoff
 
-def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbose = False):
+def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbose = False, profile = False):
     
     if out_file == None:
-        out_file = time.strftime('%y_%m_%d_%H_%M_%S') + '_cutoff_' + str(cutoff) + '_range_' + str(search_range) + '.out'
+        out_file = time.strftime('%y_%m_%d_%H_%M_%S') + '_cutoff_' + str(cutoff) + '_range_' + str(search_range)
 
-    out = open(out_file, 'w')
+    out = open(out_file + '.out', 'w')
+
+    if profile:
+        prof = cProfile.Profile()
+        prof.enable()
 
     if verbose:         
         print 'Run info:'
@@ -185,7 +191,7 @@ def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbo
         ref = reference
     
     ################
-    ref = ref[0:5]#                                     # Hack here
+    #ref = ref[0:5]#                                     # Hack here
     ################
     
     if isinstance(query, str):
@@ -198,7 +204,7 @@ def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbo
         qry = query
 
     #####################
-    qry = qry[0:100000]#                                # and here
+    #qry = qry[0:100000]#                                # and here
     #####################
 
     if verbose:
@@ -297,3 +303,8 @@ def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbo
     if verbose:
         print 'Total run time : %.3f s' % (time.time() - time_start)
     
+    if profile:
+        prof.create_stats()
+        out = open(out_file + '.prof', 'w')
+        pickle.dump(prof, out)
+        out.close()
