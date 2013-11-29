@@ -54,7 +54,7 @@ def cull(pat_freq, str_freq, cutoff):
         else:
             sum += str_let - pat_let
 
-    return sum <= 2 * cutoff
+    return sum > 2 * cutoff
 
 def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbose = False):
     if verbose:
@@ -64,7 +64,7 @@ def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbo
             print '  Reference file : ' + reference
         if isinstance(query, str):
             print '  Query file : ' + query
-        print '  Output file : ' + out_file
+		#print '  Output file : ' + out_file
         print '  Cutoff : ' + str(cutoff)
         print '  Search range : ' + str(search_range)
         print ''
@@ -95,7 +95,7 @@ def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbo
         ref = reference
     
     ################
-    ref = ref[0:5]#                                     # Hack here
+    #ref = ref[0:5]#                                     # Hack here
     ################
     
     if isinstance(query, str):
@@ -108,7 +108,7 @@ def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbo
         qry = query
 
     #####################
-    qry = qry[0:100000]#                                # and here
+    #qry = qry[0:100000]#                                # and here
     #####################
 
     if verbose:
@@ -173,7 +173,7 @@ def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbo
         num_matched = 0
         for i in range(len(qry)):
             q = qry[i]
-            if cull(pat_freq, q_freq[i], cutoff):
+            if !cull(pat_freq, q_freq[i], cutoff):
                 edit_dist = dynamic_opt(pat[1], q[1], cutoff, arr1, arr2)
                 if edit_dist <= cutoff:
                     num_matched += 1
