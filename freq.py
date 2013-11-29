@@ -98,7 +98,7 @@ def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbo
         ref = reference
     
     ################
-    ref = ref[0:5]#                                     # Hack here
+    #ref = ref[0:5]#                                     # Hack here
     ################
     
     if isinstance(query, str):
@@ -111,7 +111,7 @@ def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbo
         qry = query
 
     #####################
-    qry = qry[0:100000]#                                # and here
+    #qry = qry[0:100000]#                                # and here
     #####################
 
     if verbose:

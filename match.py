@@ -147,7 +147,7 @@ def cull(pat_freq, str_freq, cutoff):
 def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbose = False):
     
     if out_file == None:
-        out_file = time.strftime('%y_%m_%d_%H_%M_%S') + '_cutoff_' + str(cutoff) + '_range_' + str(search_range) + '.txt'
+        out_file = time.strftime('%y_%m_%d_%H_%M_%S') + '_cutoff_' + str(cutoff) + '_range_' + str(search_range) + '.out'
 
     out = open(out_file, 'w')
 
