@@ -270,10 +270,10 @@ def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbo
         for i in range(len(qry)):
             q = qry[i]
             if not cull(pat_freq, q_freq[i], cutoff):
-                edit_dist = dynamic_opt(pat[1], q[1], cutoff, arr1, arr2)
+                edit_dist = dynamic_opt(q[1], pat[1], cutoff, arr1, arr2)
                 if edit_dist <= cutoff:
                     num_matched += 1
-                    line = line + ' ' + q[0]    
+                    line = line + ' ' + q[0]
             else:
                 num_culled+=1
             
@@ -305,6 +305,9 @@ def run(reference, query, cutoff = 5, search_range = 100, out_file = None, verbo
     
     if profile:
         prof.create_stats()
-        out = open(out_file + '.prof', 'w')
-        pickle.dump(prof, out)
-        out.close()
+        
+        prof.print_stats()
+        ## apparently you can't do this?
+        #out = open(out_file + '.prof', 'w')
+        #pickle.dump(prof, out)
+        #out.close()
