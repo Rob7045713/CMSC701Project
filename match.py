@@ -137,10 +137,10 @@ def cull(pat_freq, str_freq, max_dist):
 
 def edit_distance(pattern, string, max_dist, top_row = None, bot_row = None):
     """ Computes the edit distance of a pair of strings (ignoring insertions
-        at the end of the pattern) within a specified maximum distance. Uses
-        dynamic programming optimized by not considering anything outside of
-        the maximum edit distance. Only stores two rows of the dynamic
-        programming table at any given time.
+    at the end of the pattern) within a specified maximum distance. Uses
+    dynamic programming optimized by not considering anything outside of the
+    maximum edit distance. Only stores two rows of the dynamic programming
+    table at any given time.
 
     Returns:
         Minimum of the edit distance between the strings and the maximum 
@@ -225,7 +225,44 @@ def edit_distance(pattern, string, max_dist, top_row = None, bot_row = None):
 
 
 
-def run(reference, query, max_dist = 5, freq_len = 100, out_file = None, verbose = False, profile = False):
+def run(reference, query, max_dist, freq_len = 100, out_file = None,
+        verbose = False, profile = False):
+    """ Find all prefix query to reference matches within the specified edit
+    distance. Outputs to a file with a line for each string in the reference
+    data followed by a space separated list of matching strings.
+
+    Returns:
+        No return
+
+    Arguments:
+        reference   - Either the name of a FASTA file containing the reference
+                      data, or the reference data in the form of a list of 
+                      (string_name, string)
+
+        query       - Either the name of a FASTA file containing the reference
+                      data, or the reference data in the form of a list of 
+                      (string_name, string)
+
+        max_dist    - Maximum edit distance considered for matching strings
+
+        freq_len    - Maximum length of the strings to consider when doing
+                      frequency culling
+                      Default = 100 (this seemed to work best with the given
+                                     data)
+
+        out_file    - Name of the file to output to
+                      Deafult = None (will automatically generate a filename)
+
+        verbose     - Boolean determining if the program will produce output 
+                      as it runs.
+                      Default = False (verbose mode off)
+
+        profile     - Boolean determining if a profiler should be run. If true
+                      the stats from the profiler will be printed out at the 
+                      end of the run.
+                      Default = False (profile mode off)
+
+    """
     
     if out_file == None:
         out_file = time.strftime('%y_%m_%d_%H_%M_%S') 
