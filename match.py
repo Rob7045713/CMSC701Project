@@ -47,7 +47,7 @@ def parseFASTA(fasta):
 
 
 
-def get_freqs(string, alphabet, max_length = None, freqs = None):
+def get_freqs(string, alphabet, lengths = None, all_freqs = None):
     """ Calculate the letter frequencies of a string
 
     Returns:
@@ -58,7 +58,7 @@ def get_freqs(string, alphabet, max_length = None, freqs = None):
 
         alphabet    - Dictionary mapping letters in the alphabet to indicies
 
-        max_length  - Maximum length of the string to consider
+        lengths  -  List: we want to get freq counts for prefixes of these lengths
                       Default = None (uses full string)
 
         freqs       - Array to use instead of creating a new one. Optional
@@ -66,27 +66,29 @@ def get_freqs(string, alphabet, max_length = None, freqs = None):
                       Default = None (creates new array)
     """
 
-    if max_length == None:
-        max_length = len(string)
+    if lengths == None:
+        lengths = [len(string)]
 
-    if freqs == None:
-        freqs = numpy.array([0] * len(alphabet))
-    else:
-        for i in range(len(alphabet)):
-            freqs[i] = 0
-
-    for i in range(max_length):
+    all_freqs = []
+    freqs = [0] * len(alphabet)
+    j = 0
+    lj = lengths[j]-1
+    for i in range(lengths[-1]):
         freqs[alphabet[string[i]]] += 1
+        if (i == lj):
+            all_freqs.append(list(freqs))
+            j = j+1
+            if j < len(lengths):
+                lj = lengths[j]-1
 
-    return freqs
-
+    return all_freqs
 
     
-def get_data_freqs(data, alphabet, max_length = sys.maxint):
+def get_data_freqs(data, alphabet, max_length = [sys.maxint]):
     """ Caclulate the letter frequencies of all strings in the data
 
     Returns:
-        List of arrays of letter frequencies, based on the alphabet
+        List of (List of arrays of letter frequencies, based on the alphabet)
 
     Arguments:
         data        - Data set in the form of a list of (string_name, string)
@@ -96,11 +98,11 @@ def get_data_freqs(data, alphabet, max_length = sys.maxint):
         max_length  - Maximum length of the string to consider
                       Default = sys.maxint
     """
-
+    
     freqs = []
     for tup in data:
         string = tup[1]
-        freq = get_freqs(string, alphabet, min(max_length, string))
+        freq = get_freqs(string, alphabet, max_length)
         freqs.append(freq)
     return freqs
 
@@ -134,6 +136,27 @@ def cull(pat_freq, str_freq, max_dist):
     return sum > 2 * max_dist
 
 
+def multicull(pat_freqs, str_freqs, max_dist):
+    """ Determine whether to cull based on a set of letter frequencies for prefixes of
+        multiple lengths.
+
+    Returns:
+        Boolean which is true if the pair of strings can be culled based off at least one
+        of the frequencies
+        
+    Arguments:
+        pat_freqs    - Array of (Array of letter frequencies in the pattern)
+
+        str_freqs    - Array of (Array of letter frequencies in the string)
+
+        cutoff      - Maximum edit distance allowed between the strings
+    """
+
+    for i in range(len(pat_freqs)-1,-1,-1): #check largest values first (best odds of culling)
+        if cull(pat_freqs[i], str_freqs[i], max_dist):
+            return True
+        
+    return False
 
 def edit_distance(pattern, string, max_dist, top_row = None, bot_row = None):
     """ Computes the edit distance of a pair of strings (ignoring insertions
@@ -225,8 +248,8 @@ def edit_distance(pattern, string, max_dist, top_row = None, bot_row = None):
 
 
 
-def run(reference, query, max_dist, freq_len = 100, out_file = None,
-        verbose = False, profile = False):
+def run(reference='reference.fna', query='query.fna', max_dist=3, freq_len = [185], out_file = None,
+        verbose = True, profile = False):
     """ Find all prefix query to reference matches within the specified edit
     distance. Outputs to a file with a line for each string in the reference
     data followed by a space separated list of matching strings.
@@ -247,8 +270,7 @@ def run(reference, query, max_dist, freq_len = 100, out_file = None,
 
         freq_len    - Maximum length of the strings to consider when doing
                       frequency culling
-                      Default = 100 (this seemed to work best with the given
-                                     data)
+                      Default = 185, the minimum length of any query in the test set
 
         out_file    - Name of the file to output to
                       Deafult = None (will automatically generate a filename)
@@ -309,7 +331,7 @@ def run(reference, query, max_dist, freq_len = 100, out_file = None,
         ref = reference
     
     ################
-    #ref = ref[0:5]#                                     # Hack here
+    #ref = ref[20:25]#                                     # Hack here
     ################
     
     if isinstance(query, str):
@@ -322,9 +344,9 @@ def run(reference, query, max_dist, freq_len = 100, out_file = None,
         qry = query
 
     #####################
-    #qry = qry[0:100000]#                                # and here
+    #qry = qry[550000:600000]#                                # and here
     #####################
-
+    
     if verbose:
         print '  Load time : %.3f s' % (time.time() - time_loading_start)
         print ''
@@ -372,7 +394,7 @@ def run(reference, query, max_dist, freq_len = 100, out_file = None,
     count = 0
     arr1 = numpy.array([0] * (max_len + 1))
     arr2 = numpy.array([0] * (max_len + 1))
-    pat_freq = numpy.array([0] * len(dna_alphabet))
+    #pat_freq = numpy.array([0] * len(dna_alphabet)) # this optimization needs to be updated, or probably abandoned.
 
 
     for pat in ref:
@@ -381,13 +403,13 @@ def run(reference, query, max_dist, freq_len = 100, out_file = None,
 
         line = pat[0]
 
-        pat_freq = get_freqs(pat[1], dna_alphabet, freq_len, pat_freq)
+        pat_freq = get_freqs(pat[1], dna_alphabet, freq_len)
 
         num_culled = 0    
         num_matched = 0
         for i in range(len(qry)):
             q = qry[i]
-            if not cull(pat_freq, q_freq[i], max_dist):
+            if not multicull(pat_freq, q_freq[i], max_dist):
                 edit_dist = edit_distance(q[1], pat[1], max_dist, arr1, arr2)
                 if edit_dist <= max_dist:
                     num_matched += 1
