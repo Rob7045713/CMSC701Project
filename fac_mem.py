@@ -18,7 +18,6 @@ __author__ = 'Tommy Pensyl'
 import time
 import numpy
 import cProfile
-import pickle
 import sys
 
 # alphabet for DNA
@@ -69,10 +68,10 @@ def get_freqs(string, alphabet, lengths = None, all_freqs = None):
 
         alphabet    - Dictionary mapping letters in the alphabet to indicies
 
-        lengths  -  List: we want to get freq counts for prefixes of these lengths
+        lengths     - List of lengths to record
                       Default = None (uses full string)
 
-        freqs       - Array to use instead of creating a new one. Optional
+        all_freqs   - Array to use instead of creating a new one. Optional
                       parameter used for optimization.
                       Default = None (creates new array)
     """
@@ -82,20 +81,20 @@ def get_freqs(string, alphabet, lengths = None, all_freqs = None):
 
     all_freqs = []
     freqs = [0] * len(alphabet)
-    j = 0
-    lj = lengths[j]-1
+    len_num = 0
+    length = lengths[len_num] - 1
     for i in range(lengths[-1]):
         freqs[alphabet[string[i]]] += 1
-        if (i == lj):
+        if (i == length):
             all_freqs.append(list(freqs))
-            j = j+1
-            if j < len(lengths):
-                lj = lengths[j]-1
+            len_num += 1
+            if len_num < len(lengths):
+                length = lengths[len_num] - 1
 
     return all_freqs
 
     
-def get_data_freqs(data, alphabet, max_length = [sys.maxint]):
+def get_data_freqs(data, alphabet, lengths):
     """ Caclulate the letter frequencies of all strings in the data
 
     Returns:
@@ -106,14 +105,14 @@ def get_data_freqs(data, alphabet, max_length = [sys.maxint]):
 
         alphabet    - Dictionary mapping letters in the alphabet to indicies
         
-        max_length  - Maximum length of the string to consider
-                      Default = sys.maxint
+        lengths     - List of lengths to record
+    
     """
     
     freqs = []
     for tup in data:
         string = tup[1]
-        freq = get_freqs(string, alphabet, max_length)
+        freq = get_freqs(string, alphabet, lengths)
         freqs.append(freq)
     return freqs
 
@@ -130,7 +129,7 @@ def cull(pat_freq, str_freq, max_dist):
 
         str_freq    - Array of letter frequencies in the string
 
-        cutoff      - Maximum edit distance allowed between the strings
+        max_dist    - Maximum edit distance allowed between the strings
     """
 
     sum = 0
@@ -148,22 +147,23 @@ def cull(pat_freq, str_freq, max_dist):
 
 
 def multicull(pat_freqs, str_freqs, max_dist):
-    """ Determine whether to cull based on a set of letter frequencies for prefixes of
-        multiple lengths.
+    """ Determine whether to cull based on a set of letter frequencies for
+        prefixes of multiple lengths.
 
     Returns:
-        Boolean which is true if the pair of strings can be culled based off at least one
-        of the frequencies
+        Boolean which is true if the pair of strings can be culled based off
+        at least one of the frequencies
         
     Arguments:
         pat_freqs    - Array of (Array of letter frequencies in the pattern)
 
         str_freqs    - Array of (Array of letter frequencies in the string)
 
-        cutoff      - Maximum edit distance allowed between the strings
+        max_dist     - Maximum edit distance allowed between the strings
     """
 
-    for i in range(len(pat_freqs)-1,-1,-1): #check largest values first (best odds of culling)
+    #check largest values first (best odds of culling)
+    for i in range(len(pat_freqs) - 1, -1, -1):
         if cull(pat_freqs[i], str_freqs[i], max_dist):
             return True
         
@@ -259,8 +259,8 @@ def edit_distance(pattern, string, max_dist, top_row = None, bot_row = None):
 
 
 
-def run(reference='reference.fna', query='query.fna', max_dist=3, 
-        freq_len = None, out_file = None, verbose = True, profile = False):
+def run(reference, query, max_dist, freq_len = None, out_file = None,
+        verbose = True, profile = False):
     """ Find all prefix query to reference matches within the specified edit
     distance. Outputs to a file with a line for each string in the reference
     data followed by a space separated list of matching strings.
