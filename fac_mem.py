@@ -259,8 +259,8 @@ def edit_distance(pattern, string, max_dist, top_row = None, bot_row = None):
 
 
 
-def run(reference='reference.fna', query='query.fna', max_dist=3, freq_len = [185], out_file = None,
-        verbose = True, profile = False):
+def run(reference='reference.fna', query='query.fna', max_dist=3, 
+        freq_len = None, out_file = None, verbose = True, profile = False):
     """ Find all prefix query to reference matches within the specified edit
     distance. Outputs to a file with a line for each string in the reference
     data followed by a space separated list of matching strings.
@@ -281,8 +281,9 @@ def run(reference='reference.fna', query='query.fna', max_dist=3, freq_len = [18
 
         freq_len    - Maximum length of the strings to consider when doing
                       frequency culling
-                      Default = 185 (the minimum length of any query in the
-                                    test set)
+                      Default = None (ranges from half of the minimum query
+                                     length to the minimum query length in 
+                                     increments of 5)
 
         out_file    - Name of the file to output to
                       Deafult = None (will automatically generate a filename)
@@ -301,7 +302,6 @@ def run(reference='reference.fna', query='query.fna', max_dist=3, freq_len = [18
     if out_file == None:
         out_file = time.strftime('%y_%m_%d_%H_%M_%S') 
         out_file += '_max_dist_' + str(max_dist)
-        out_file += '_freq_len_' + str(freq_len)
 
     out = open(out_file + '.out', 'w')
 
@@ -318,7 +318,10 @@ def run(reference='reference.fna', query='query.fna', max_dist=3, freq_len = [18
             print '  Query file : ' + query
         print '  Output file : ' + out_file
         print '  Max edit distance : ' + str(max_dist)
-        print '  Frequency length cutoff : ' + str(freq_len)
+        if freq_len == None:
+            print '  Frequency length cutoff : Auto'
+        else:
+            print '  Frequency length cutoff : User specified'
         print ''
 
 
@@ -380,7 +383,9 @@ def run(reference='reference.fna', query='query.fna', max_dist=3, freq_len = [18
         print '  - Max length'
 
     max_len = max([len(q[1]) for q in qry])
-    #freq_len = min([len(x[1]) for x in qry])       # TODO : this
+    if freq_len == None:
+        min_len = min([len(q[1]) for q in qry])
+        freq_len = range(min_len / 2, min_len + 1, 5)
 
     if verbose:
         print '  - Query frequencies'
