@@ -412,6 +412,8 @@ def run(reference, query, max_dist, freq_len = None, out_file = None,
         print ''
 
     count = 0
+    total_culled = 0
+    total_matched = 0
     arr1 = numpy.array([0] * (max_len + 1))
     arr2 = numpy.array([0] * (max_len + 1))
 
@@ -435,6 +437,9 @@ def run(reference, query, max_dist, freq_len = None, out_file = None,
             else:
                 num_culled+=1
             
+        total_culled += num_culled
+        total_matched += num_matched
+
         line = line + '\n'
         out.write(line)
 
@@ -448,8 +453,11 @@ def run(reference, query, max_dist, freq_len = None, out_file = None,
             print '  Queries matched : ' + str(num_matched)
     
     if verbose:
+        total_num = len(ref) * len(qry)
+        percent_culled = 100.0 * float(total_culled) / float(total_num)
         print ''
         print 'Matching time : %.3f s' % (time.time() - time_match_start)
+        print 'Queries culled : ' + str(total_culled) + ' / ' + str(total_num) + ' (%.2f%%)' % percent_culled
         print ''
 
     ### /\ Matching /\ ###
