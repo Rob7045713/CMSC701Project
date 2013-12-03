@@ -12,16 +12,20 @@ Copyright (c) 2013  Rob Argue (rargue@cs.umd.edu)
                     Tommy Pensyl (tpensyl@cs.umd.edu)
 """
 
-__author__ = 'Rob Argue'
-__author__ = 'Tommy Pensyl'
+__author__ = 'Rob Argue, Tommy Pensyl'
+
+
 
 import time
 import numpy
 import cProfile
-import sys
+
+
 
 # alphabet for DNA
 dna_alphabet = {'A':0,'C':1,'G':2,'T':3}
+
+
 
 def parseFASTA(fasta):
     """ Parse a FASTA file into a list.
@@ -93,6 +97,7 @@ def get_freqs(string, alphabet, lengths = None, all_freqs = None):
 
     return all_freqs
 
+
     
 def get_data_freqs(data, alphabet, lengths):
     """ Caclulate the letter frequencies of all strings in the data
@@ -105,8 +110,7 @@ def get_data_freqs(data, alphabet, lengths):
 
         alphabet    - Dictionary mapping letters in the alphabet to indicies
         
-        lengths     - List of lengths to record
-    
+        lengths     - List of lengths to record    
     """
     
     freqs = []
@@ -132,6 +136,7 @@ def cull(pat_freq, str_freq, max_dist):
         max_dist    - Maximum edit distance allowed between the strings
     """
 
+    # optimized sum of absolute value of the difference of arrays
     sum = 0
 
     for let in range(len(pat_freq)):
@@ -144,6 +149,7 @@ def cull(pat_freq, str_freq, max_dist):
             sum += str_let - pat_let
 
     return sum > 2 * max_dist
+
 
 
 def multicull(pat_freqs, str_freqs, max_dist):
@@ -168,6 +174,8 @@ def multicull(pat_freqs, str_freqs, max_dist):
             return True
         
     return False
+
+
 
 def edit_distance(pattern, string, max_dist, top_row = None, bot_row = None):
     """ Computes the edit distance of a pair of strings (ignoring insertions
@@ -280,7 +288,8 @@ def run(reference, query, max_dist, freq_len = None, out_file = None,
         max_dist    - Maximum edit distance considered for matching strings
 
         freq_len    - Maximum length of the strings to consider when doing
-                      frequency culling
+                      frequency culling, or a list of lengths to consider for
+                      culling
                       Default = None (ranges from half of the minimum query
                                      length to the minimum query length in 
                                      increments of 5)
@@ -344,11 +353,7 @@ def run(reference, query, max_dist, freq_len = None, out_file = None,
     
     else:
         ref = reference
-    
-    ################
-    #ref = ref[20:25]#                                     # Hack here
-    ################
-    
+       
     if isinstance(query, str):
         if verbose:
             print '  Loading ' + query
@@ -357,10 +362,6 @@ def run(reference, query, max_dist, freq_len = None, out_file = None,
 
     else:
         qry = query
-
-    #####################
-    #qry = qry[550000:600000]#                                # and here
-    #####################
     
     if verbose:
         print '  Load time : %.3f s' % (time.time() - time_loading_start)
@@ -382,10 +383,12 @@ def run(reference, query, max_dist, freq_len = None, out_file = None,
     if verbose:
         print '  - Max length'
 
-    max_len = max([len(q[1]) for q in qry])
+    max_len = max([len(r[1]) for r in ref])
     if freq_len == None:
         min_len = min([len(q[1]) for q in qry])
         freq_len = range(min_len / 2, min_len + 1, 5)
+    elif isinstance(freq_len, int):
+        freq_len = range(freq_len / 2, freq_len + 1, 5)
 
     if verbose:
         print '  - Query frequencies'
@@ -411,8 +414,6 @@ def run(reference, query, max_dist, freq_len = None, out_file = None,
     count = 0
     arr1 = numpy.array([0] * (max_len + 1))
     arr2 = numpy.array([0] * (max_len + 1))
-    #pat_freq = numpy.array([0] * len(dna_alphabet)) # this optimization needs to be updated, or probably abandoned.
-
 
     for pat in ref:
     
@@ -463,8 +464,3 @@ def run(reference, query, max_dist, freq_len = None, out_file = None,
     if profile:
         prof.create_stats()
         prof.print_stats()
-
-        ## apparently you can't do this?
-        #out = open(out_file + '.prof', 'w')
-        #pickle.dump(prof, out)
-        #out.close()
