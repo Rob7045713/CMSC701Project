@@ -29,10 +29,22 @@ Additionally, we found it was helpful to apply this frequency-culling on prefixe
 
 The letter frequencies are calculated just once for each query and reference, so this adds only an $O(q+p)$ term which is dominated by the other terms. The $O(qp)$ addition only involves comparing the 4 frequencies, so it adds a small amount of time per pair, which increases as we examine more prefixes. If examining too many prefixes, this time becomes too large and hurts the time overall. Experimentally, we found a good set of prefixes to examine was those of length $(\frac{x}{2},\frac{x}{2}+5,\frac{x}{2}+10,\dots,x-5,x)$.
 
+\section{Experiments}
+We compared our algorithm to dnaclust using the full test data set with a maximum edit distance of 3. Our algorithm ran in 1817 seconds, and dnaclust ran in 11.77 seconds.
 
+Additionally, we confirmed that the runtime is linear in the number of queries, and in the number of references, as expected. 
+
+Furthermore we ran it over a series of different maximum edit distances, and found that the runtime grows approximately cubicly as a function of $k$. Previous measurements had shown that the dynamic algorithm alone ran in time quadratic with respect to the maximum edit distance. Considering this with our results for this experiments suggests the number of unculled elements grows linearly with respect to the maximum edit distance.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale = 0.5]{its_cubic.png}
+\caption{Maximum edit distance vs. runtime: actual runtime in blue, cubic curve in green}
+\end{center}
+\end{figure}
 
 \section{Results}
-
+The algorithm ran in 1817 seconds for the full set of test data, as compared to 11.77 for dnaclust. The frequency culling eliminated 98.4\% of the pairings. We consider this a success for lightly optimized python code, and further improvements could be made by porting the code to cython or C.  
 \maketitle
 
 \end{document}
